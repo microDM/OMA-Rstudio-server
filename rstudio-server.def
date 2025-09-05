@@ -16,25 +16,25 @@ From: rocker/rstudio:4.5.1
     ########### install rJAVA ##################
     set -e
     apt-get update && apt-get install -y --no-install-recommends \
-        openjdk-17-jdk-headless && rm -rf /var/lib/apt/lists/*
+        openjdk-17-jdk-headless \
+        libpcre2-dev libdeflate-dev libzstd-dev liblzma-dev libbz2-dev zlib1g-dev libicu-dev
     # Configure R to use Java (writes $R_HOME/etc/javaconf)
     R CMD javareconf
     # (optional) verify rJava builds
     R -q -e "install.packages('rJava', repos='https://cloud.r-project.org')"
 
     ########### install OMA dependencies ##################
-    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
+    R -q -e "install.packages('BiocManager', quite = T)"
     R -q -e "
         url <- 'https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv'
         df <- read.csv(url)
         packages <- df[[1]]
-        pak::pkg_install(
+        BiocManager::install(
             packages
         )"
-    # clean caches to keep image small
-    R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
 
     ############### install other packages ##################
+    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
     R -q -e "
         pak::pkg_install(
             c(
