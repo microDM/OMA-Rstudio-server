@@ -16,8 +16,9 @@ From: rocker/rstudio:4.5.1
     ########### install rJAVA ##################
     set -e
     apt-get update && apt-get install -y --no-install-recommends \
-        openjdk-17-jdk-headless \
-        libpcre2-dev libdeflate-dev libzstd-dev liblzma-dev libbz2-dev zlib1g-dev libicu-dev
+        openjdk-17-jdk-headless libcurl4-openssl-dev \
+        libpcre2-dev libdeflate-dev libzstd-dev liblzma-dev libbz2-dev zlib1g-dev libicu-dev libglpk-dev \
+        libgsl-dev
     # Configure R to use Java (writes $R_HOME/etc/javaconf)
     R CMD javareconf
     # (optional) verify rJava builds
@@ -33,34 +34,41 @@ From: rocker/rstudio:4.5.1
             packages
         )"
 
-    ############### install other packages ##################
+    ############### CRAN/BIOC packages ##################
     R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
     R -q -e "
-        pak::pkg_install(
-            c(
-                'survIDINRI',
-                'tidymodels',
-                'mlr3',
-                'mlr3verse',
-                'mlr3learners',
-                'mlr3extralearners',
-                'mlr3pipelines',
-                'mlr3proba',
-                'distr6',
-                'gtsummary',
-                'broom.helpers',
-                'randomForestSRC',
-                'smoothHR',
-                'ggsurvfit',
-                'BART',
-                'bartmachine',
-                'bartmachineJARS',
-                'rsample',
-                'splitTools',
-                'VIM'
-            )
-        )"
+        pak::pkg_install(c(
+            'survIDINRI',
+            'tidymodels',
+            'mlr3',
+            'mlr3verse',
+            'mlr3learners',
+            'mlr3pipelines',
+            'gtsummary',
+            'broom.helpers',
+            'randomForestSRC',
+            'smoothHR',
+            'ggsurvfit',
+            'BART',
+            'rsample',
+            'splitTools',
+            'VIM',
+            'bartMachineJARs',
+            'bartMachine'
+        ),
+        ask = FALSE)"
+    # clean caches to keep image small
+    R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
 
+    ############### GitHub packages ##################
+    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
+    R -q -e "
+        pak::pkg_install(c(
+            'mlr-org/mlr3extralearners@*release',
+            'mlr-org/mlr3proba',
+            'xoopR/distr6'
+        ),
+        ask = FALSE)"
     # clean caches to keep image small
     R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
 
