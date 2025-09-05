@@ -25,7 +25,7 @@ From: rocker/rstudio:4.5.1
     ########### install OMA dependencies ##################
     R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
     R -q -e "
-        url <- "https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv"
+        url <- 'https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv'
         df <- read.csv(url)
         packages <- df[[1]]
         pak::pkg_install(
