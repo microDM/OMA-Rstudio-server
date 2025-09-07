@@ -3,18 +3,20 @@ name: Build and Release RStudio Server SIF
 on:
   push:
     tags:
-      - 'v*'              # Trigger on version tags like v1.0, v2.5, etc.
+      - 'v*'          # build on version tags like v1.0
   workflow_dispatch:
 
 permissions:
-  contents: write       # Required for creating releases and uploading assets
+  contents: write      # needed for committing and releasing
 
 jobs:
   build-sif:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout code
+      - name: Checkout code at tag
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install Apptainer (PPA)
         run: |
@@ -28,15 +30,84 @@ jobs:
         run: |
           apptainer build rstudio_server.sif rstudio-server.def
 
+      # --- 1) Run R inside the SIF to export installed packages -----------
+      - name: Export installed R packages from SIF
+        run: |
+          apptainer exec rstudio_server.sif Rscript -e "
+            ip <- as.data.frame(utils::installed.packages()[, c('Package','Version')]);
+            write.table(ip, file = 'installed_packages.tsv', sep = '\t', row.names = FALSE, quote = FALSE)
+          "
+
+      # Upload both files as run artifacts (nice for quick downloads from the run)
       - name: Upload SIF as workflow artifact
         uses: actions/upload-artifact@v4
         with:
           name: rstudio_server.sif
           path: rstudio_server.sif
 
-      - name: Create GitHub Release and upload asset
+      - name: Upload package list as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: installed_packages.tsv
+          path: installed_packages.tsv
+
+      # --- 2) Attach both files to the tag's GitHub Release ----------------
+      - name: Create/Update GitHub Release and upload assets
         uses: softprops/action-gh-release@v1
         with:
-          files: rstudio_server.sif
+          files: |
+            rstudio_server.sif
+            installed_packages.tsv
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # --- 3) Commit installed_packages.tsv + update README on main --------
+      # Check out main branch into a subfolder, copy TSV, render markdown table, commit
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: repo-main
+          fetch-depth: 0
+
+      - name: Copy TSV into repo and (re)generate README table
+        run: |
+          cp installed_packages.tsv repo-main/installed_packages.tsv
+
+          python - << 'PY'
+          import pandas as pd, os, re
+          pth = os.path.join('repo-main', 'installed_packages.tsv')
+          df  = pd.read_csv(pth, sep='\t')
+          df  = df.sort_values('Package', kind='mergesort')  # stable order
+          lines = ['| Package | Version |', '|---|---|']
+          for _,r in df.iterrows():
+              lines.append(f"| {r['Package']} | {r['Version']} |")
+          table_md = '\n'.join(lines)
+
+          readme_path = os.path.join('repo-main','README.md')
+          if os.path.exists(readme_path):
+              txt = open(readme_path, 'r', encoding='utf-8').read()
+          else:
+              txt = '# Project\n'
+
+          # Replace or append between markers
+          start = '<!-- BEGIN: INSTALLED_PACKAGES -->'
+          end   = '<!-- END: INSTALLED_PACKAGES -->'
+          block = f"{start}\n\n## Installed Packages\n\n{table_md}\n\n{end}\n"
+
+          if start in txt and end in txt:
+              txt = re.sub(start + r'.*?' + end, block, txt, flags=re.S)
+          else:
+              txt = txt.rstrip() + '\n\n' + block + '\n'
+
+          open(readme_path, 'w', encoding='utf-8').write(txt)
+          PY
+
+      - name: Commit changes to main (installed_packages.tsv + README.md)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          repository: repo-main
+          commit_message: "chore: update installed_packages.tsv and README [skip ci]"
+          file_pattern: |
+            installed_packages.tsv
+            README.md

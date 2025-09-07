@@ -75,6 +75,9 @@ From: rocker/rstudio:4.5.1
     # Make sure locale exists (helps avoid UTF-8 issues)
     locale-gen en_US.UTF-8 || true
 
+    ################## Other packages #######################
+    R -e "install.packages('INLA',repos=c(getOption('repos'),INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
+    
 %environment
     export LANG=en_US.UTF-8
     export LC_ALL=en_US.UTF-8

@@ -1,0 +1,7 @@
+# 1. Push or sync commits
+# 2. Add tag
+    git tag -a v1.0 -m 'for release v1.0'
+# 3. Force tag
+    git tag -f v1.0
+# 4. Push changes with tag
+    git push --force origin v1.0
