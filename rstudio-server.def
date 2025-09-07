@@ -10,16 +10,14 @@ From: rocker/r-ver:4.5
     set -e
     echo "Updating base and installing useful tools..."
     apt-get update && apt-get install -y --no-install-recommends \
-        sudo locales ca-certificates git wget \
-        && rm -rf /var/lib/apt/lists/*
+        sudo locales ca-certificates git wget 
 
     ########### install rJAVA ##################
     set -e
     apt-get update && apt-get install -y --no-install-recommends \
         openjdk-17-jre-headless libcurl4-openssl-dev \
         libpcre2-dev libdeflate-dev libzstd-dev liblzma-dev libbz2-dev zlib1g-dev libicu-dev libglpk-dev \
-        libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev \
-        && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+        libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev 
 
     ################## install RStudio #################
     echo "==> Install RStudio Server (Posit)"
@@ -30,10 +28,8 @@ From: rocker/r-ver:4.5
 
     # Use apt to install the .deb so dependencies are resolved without pulling in gdebi
     apt-get update
-    apt-get install -y --no-install-recommends /tmp/rstudio-server.deb \
-        && rm -f /tmp/rstudio-server.deb \
-        && rm -rf /var/lib/apt/lists/*
-
+    apt-get install -y --no-install-recommends /tmp/rstudio-server.deb 
+    
     # Configure R to use Java (writes $R_HOME/etc/javaconf)
     R CMD javareconf
     # (optional) verify rJava builds
