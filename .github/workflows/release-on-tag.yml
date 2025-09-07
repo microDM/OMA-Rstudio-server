@@ -70,48 +70,43 @@ jobs:
           path: repo-main
           fetch-depth: 0
       
-      - name: Set up Python (3.x)
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.x'
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pandas
-
-
-      - name: Copy TSV into repo and (re)generate README table
+            - name: Copy TSV into repo and (re)generate README table (no deps)
         run: |
           cp installed_packages.tsv repo-main/installed_packages.tsv
 
           python - << 'PY'
-          import pandas as pd, os, re
-          pth = os.path.join('repo-main', 'installed_packages.tsv')
-          df  = pd.read_csv(pth, sep='\t')
-          df  = df.sort_values('Package', kind='mergesort')  # stable order
-          lines = ['| Package | Version |', '|---|---|']
-          for _,r in df.iterrows():
-              lines.append(f"| {r['Package']} | {r['Version']} |")
-          table_md = '\n'.join(lines)
+          import csv, os, re
 
-          readme_path = os.path.join('repo-main','README.md')
+          tsv_path = os.path.join('repo-main', 'installed_packages.tsv')
+          with open(tsv_path, newline='') as f:
+              rows = list(csv.DictReader(f, delimiter='\t'))
+
+          # Sort for stable diffs
+          rows.sort(key=lambda r: r['Package'])
+
+          # Build markdown table
+          lines = ['| Package | Version |', '|---|---|']
+          for r in rows:
+              lines.append(f"| {r['Package']} | {r['Version']} |")
+          table_md = "\n".join(lines)
+
+          readme_path = os.path.join('repo-main', 'README.md')
           if os.path.exists(readme_path):
               txt = open(readme_path, 'r', encoding='utf-8').read()
           else:
               txt = '# Project\n'
 
-          # Replace or append between markers
-          start = '<!-- BEGIN: INSTALLED_PACKAGES -->'
-          end   = '<!-- END: INSTALLED_PACKAGES -->'
-          block = f"{start}\n\n## Installed Packages\n\n{table_md}\n\n{end}\n"
+          START = '<!-- BEGIN: INSTALLED_PACKAGES -->'
+          END   = '<!-- END: INSTALLED_PACKAGES -->'
+          block = f"{START}\n\n## Installed Packages\n\n{table_md}\n\n{END}\n"
 
-          if start in txt and end in txt:
-              txt = re.sub(start + r'.*?' + end, block, txt, flags=re.S)
+          if START in txt and END in txt:
+              txt = re.sub(START + r'.*?' + END, block, txt, flags=re.S)
           else:
               txt = txt.rstrip() + '\n\n' + block + '\n'
 
-          open(readme_path, 'w', encoding='utf-8').write(txt)
+          with open(readme_path, 'w', encoding='utf-8') as out:
+              out.write(txt)
           PY
 
       - name: Commit changes to main (installed_packages.tsv + README.md)
