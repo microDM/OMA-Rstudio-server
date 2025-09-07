@@ -3,132 +3,176 @@ From: rocker/rstudio:4.5.1
 
 %labels
     Maintainer "Dattatray Mongad <dattatray.mongad@utu.fi>"
-    Version "1.1"
-    Description "RStudio Server (PAM) + r2u binaries; smaller image"
+    Version "1.2"
+    Description "RStudio Server (PAM) + r2u/bioc2u binaries; OMA + extras installed; lean size"
 
 %post
     set -e
-    echo "Base tools (kept lean) ..."
+
+    echo "==> Base tools (lean)..."
     apt-get update && apt-get install -y --no-install-recommends \
-        locales ca-certificates gnupg wget \
+        locales ca-certificates gnupg wget curl xz-utils \
         && rm -rf /var/lib/apt/lists/*
 
-    # --- r2u: CRAN as Ubuntu binaries (so install.packages() pulls binaries) ---
-    # (jammy/noble both supported; rocker/rstudio:4.5.1 is jammy as of now)
-    echo "Configuring CRAN + r2u binary repos ..."
+    echo "==> Add CRAN and r2u/bioc2u for Ubuntu ${UBUNTU_CODENAME} (R binaries via apt)..."
+    # CRAN key + repo (noble uses '*-cran40' path)
     wget -q -O- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc \
-      | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+      | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc >/dev/null
     . /etc/os-release
     echo "deb [arch=amd64] https://cloud.r-project.org/bin/linux/ubuntu ${UBUNTU_CODENAME}-cran40/" \
       > /etc/apt/sources.list.d/cran_r.list
+
+    # r2u key + repo
     wget -q -O- https://eddelbuettel.github.io/r2u/assets/dirk_eddelbuettel_key.asc \
-      | tee -a /etc/apt/trusted.gpg.d/cranapt_key.asc
+      | tee -a /etc/apt/trusted.gpg.d/cranapt_key.asc >/dev/null
     echo "deb [arch=amd64] https://r2u.stat.illinois.edu/ubuntu ${UBUNTU_CODENAME} main" \
       > /etc/apt/sources.list.d/cranapt.list
-    apt-get update
 
-    # Prefer r2u binaries
-    echo "Package: *"                                >  /etc/apt/preferences.d/99cranapt
-    echo "Pin: release o=CRAN-Apt Project"           >> /etc/apt/preferences.d/99cranapt
-    echo "Pin: release l=CRAN-Apt Packages"          >> /etc/apt/preferences.d/99cranapt
-    echo "Pin-Priority: 700"                         >> /etc/apt/preferences.d/99cranapt
     apt-get update -qq
 
-    # --- IMPORTANT: bspm is not usable inside docker/apptainer build ---
-    # We'll install binaries with apt now; at runtime users still benefit from bspm.
+    echo "==> Prefer r2u/bioc2u packages with pinning..."
+    cat >/etc/apt/preferences.d/99cranapt <<'PIN'
+Package: *
+Pin: release o=CRAN-Apt Project
+Pin: release l=CRAN-Apt Packages
+Pin-Priority: 700
+PIN
+    apt-get update -qq
+
+    echo "==> IMPORTANT: Disable bspm during build (Docker/Apptainer policy). We'll use apt directly now."
+    # r2u FAQ: bspm is not available during builds; use apt in derived containers, then enable bspm at runtime. 
+    # https://eddelbuettel.github.io/r2u/vignettes/FAQ/
     export BSPM_DISABLE=1
 
-
-    # --- Enable bspm so R uses apt binaries transparently ---
+    echo "==> Install bspm for runtime (enabled in Rprofile.site)..."
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         r-cran-bspm python3-dbus \
         && rm -rf /var/lib/apt/lists/*
     echo 'suppressMessages(bspm::enable()); options(bspm.sudo.autodetect=TRUE)' \
         > /usr/lib/R/etc/Rprofile.site
 
-    ######## rJava WITHOUT keeping JDK (Option A: smallest) ########
-    # Use prebuilt binary from r2u; needs only Java runtime.
+    echo "==> Java (runtime only) + rJava binary..."
     apt-get update && apt-get install -y --no-install-recommends \
         default-jre-headless r-cran-rjava \
         && rm -rf /var/lib/apt/lists/*
 
-    # If you prefer building from CRAN instead, comment A and use B below.
-    : <<'OPTION_B'
-    apt-get update && apt-get install -y --no-install-recommends \
-        openjdk-17-jdk-headless \
-        && rm -rf /var/lib/apt/lists/*
-    R CMD javareconf
-    R -q -e "install.packages('rJava', repos='https://cloud.r-project.org')"
-    apt-get purge -y openjdk-17-jdk-headless && apt-get autoremove -y
-    apt-get install -y --no-install-recommends openjdk-17-jre-headless
-    rm -rf /var/lib/apt/lists/*
-    OPTION_B
-
-    ######## OMA deps & others (install only what you really need) ########
-    # TIP: comment out heavy geospatial libs if you don't use them.
+    echo "==> System libs (trim if you do not need heavy geo libs)..."
     apt-get update && apt-get install -y --no-install-recommends \
         libcurl4-openssl-dev libpcre2-dev libdeflate-dev libzstd-dev \
         liblzma-dev libbz2-dev zlib1g-dev libicu-dev libglpk-dev \
         libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev \
         && rm -rf /var/lib/apt/lists/*
-    
-    ########### install OMA dependencies (binary-first + fallback) ###########
-    R -q -e "install.packages('BiocManager', quiet=TRUE)"
 
-    # 1) Read the OMA list once in R and keep it around
+    ############################################################################
+    # OMA packages: Binary-first via apt (r2u/bioc2u) + fallback via BiocManager
+    ############################################################################
+    echo "==> Install BiocManager and read OMA package list..."
+    R -q -e "if (!requireNamespace('BiocManager', quietly=TRUE)) install.packages('BiocManager', quiet=TRUE)"
+
     R -q -e "
-    url <- 'https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv';
-    pkgs <- read.csv(url, stringsAsFactors=FALSE)[[1]];
-    saveRDS(pkgs, '/tmp/oma_pkgs.rds')
+      url <- 'https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv';
+      pkgs <- read.csv(url, stringsAsFactors=FALSE)[[1]];
+      saveRDS(pkgs, '/tmp/oma_pkgs.rds')
     "
 
-    # 2) Try to install as many as possible as binaries via apt:
-    #    r2u uses the naming r-cran-<pkg> and r-bioc-<pkg> (lowercase).
+    echo "==> Generate candidate apt names for OMA (r-cran-*, r-bioc-*)..."
     R -q -e "
-    pkgs <- readRDS('/tmp/oma_pkgs.rds');
-    writeLines(paste0('r-cran-', tolower(pkgs)), '/tmp/rcran.txt');
-    writeLines(paste0('r-bioc-', tolower(pkgs)), '/tmp/rbioc.txt');
+      pkgs <- readRDS('/tmp/oma_pkgs.rds');
+      writeLines(paste0('r-cran-', tolower(pkgs)), '/tmp/oma_rcran.txt');
+      writeLines(paste0('r-bioc-', tolower(pkgs)), '/tmp/oma_rbioc.txt');
     "
 
-    # Best-effort installs; apt will skip unknown ones by failing that line, so we ignore errors
-    xargs -r -a /tmp/rcran.txt apt-get install -y --no-install-recommends || true
-    xargs -r -a /tmp/rbioc.txt apt-get install -y --no-install-recommends || true
+    echo "==> Filter to packages that actually exist in apt (avoid exit 100 on unknown names)..."
+    awk '{print $1}' /tmp/oma_rcran.txt /tmp/oma_rbioc.txt | while read -r pkg; do
+      if apt-cache show \"$pkg\" >/dev/null 2>&1; then
+        echo \"$pkg\"
+      fi
+    done | sort -u > /tmp/oma_apt_present.txt
 
-    # 3) Fallback: anything not present yet gets installed from R (may compile a few)
+    if [ -s /tmp/oma_apt_present.txt ]; then
+      echo \"Installing OMA packages available via apt...\"
+      xargs -a /tmp/oma_apt_present.txt apt-get install -y --no-install-recommends || true
+      rm -rf /var/lib/apt/lists/*
+    fi
+
+    echo "==> Fallback: OMA packages still missing -> install via BiocManager (may compile a few)..."
     R -q -e "
-    pkgs <- readRDS('/tmp/oma_pkgs.rds');
-    inst <- rownames(installed.packages());
-    need <- setdiff(pkgs, inst);
-    if (length(need)) BiocManager::install(need, ask=FALSE, update=FALSE)
+      pkgs <- readRDS('/tmp/oma_pkgs.rds');
+      inst <- rownames(installed.packages());
+      need <- setdiff(pkgs, inst);
+      if (length(need)) BiocManager::install(need, ask=FALSE, update=FALSE)
     "
 
-    # Your package sets (many are available as binaries via r2u)
-    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
+    #############################################################
+    # Your extra CRAN set: binaries first, then pak for the rest
+    #############################################################
+    echo "==> Try apt binaries for your CRAN set (fast, small)..."
+    cat >/tmp/cran_manual_candidates.txt <<'CRANLIST'
+        r-cran-survidinri
+        r-cran-tidymodels
+        r-cran-mlr3
+        r-cran-mlr3verse
+        r-cran-mlr3learners
+        r-cran-mlr3pipelines
+        r-cran-gtsummary
+        r-cran-broom.helpers
+        r-cran-randomforestsrc
+        r-cran-smoothhr
+        r-cran-ggsurvfit
+        r-cran-bart
+        r-cran-rsample
+        r-cran-splittools
+        r-cran-vim
+        r-cran-bartmachinejars
+        r-cran-bartmachine
+        CRANLIST
+
+    awk '{print $1}' /tmp/cran_manual_candidates.txt | while read -r pkg; do
+      if apt-cache show \"$pkg\" >/dev/null 2>&1; then
+        echo \"$pkg\"
+      fi
+    done | sort -u > /tmp/cran_manual_present.txt
+
+    if [ -s /tmp/cran_manual_present.txt ]; then
+      xargs -a /tmp/cran_manual_present.txt apt-get install -y --no-install-recommends || true
+      rm -rf /var/lib/apt/lists/*
+    fi
+
+    echo "==> GitHub-only / not-in-apt bits via pak (runtime bspm will help with deps later too)..."
+    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable', quiet=TRUE)"
     R -q -e "pak::pkg_install(c(
-        'survIDINRI','tidymodels','mlr3','mlr3verse','mlr3learners','mlr3pipelines',
-        'gtsummary','broom.helpers','randomForestSRC','smoothHR','ggsurvfit',
-        'BART','rsample','splitTools','VIM','bartMachineJARs','bartMachine'
+        'mlr-org/mlr3extralearners@*release',
+        'mlr-org/mlr3proba',
+        'xoopR/distr6'
       ), ask=FALSE)"
-    R -q -e "pak::cache_delete()"
+    R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
 
-    # GitHub packages; pak will still use binaries where possible via bspm
-    R -q -e "pak::pkg_install(c(
-        'mlr-org/mlr3extralearners@*release','mlr-org/mlr3proba','xoopR/distr6'
-      ), ask=FALSE)"
-    R -q -e "pak::cache_delete()"
-
-    # INLA (special repo)
+    echo "==> INLA (special repo)..."
     R -q -e "install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
 
-    # Locale
+    echo "==> Clean apt caches to shrink image..."
+    apt-get clean
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+    echo "==> Locale..."
     locale-gen en_US.UTF-8 || true
 
 %environment
     export LANG=en_US.UTF-8
     export LC_ALL=en_US.UTF-8
+    # Per-user R libs can live in their home (outside container)
     export R_LIBS_USER=${HOME}/R/libs
 
 %runscript
     echo "Starting RStudio Server on port 8787 (PAM auth)..."
-    exec rserver --www-address=0.0.0.0 --www-port=8787 \
-      --auth-pam-helper-path=pam-helper --server-daemonize=0
+    exec rserver \
+      --www-address=0.0.0.0 \
+      --www-port=8787 \
+      --auth-pam-helper-path=pam-helper \
+      --server-daemonize=0
+
+%help
+    RStudio Server (OSS) with PAM auth.
+    - Connect via http://<host>:8787
+    - Users log in with their Linux accounts (PAM).
+    - r2u/bioc2u used for binary R/Bioc packages (small + fast).
