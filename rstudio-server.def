@@ -15,7 +15,7 @@ From: rocker/r-ver:4.5
     ########### install rJAVA ##################
     set -e
     apt-get update && apt-get install -y --no-install-recommends \
-        openjdk-17-jre-headless libcurl4-openssl-dev \
+        openjdk-17-jdk-headless libcurl4-openssl-dev \
         libpcre2-dev libdeflate-dev libzstd-dev liblzma-dev libbz2-dev zlib1g-dev libicu-dev libglpk-dev \
         libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev 
 
@@ -29,7 +29,7 @@ From: rocker/r-ver:4.5
     # Use apt to install the .deb so dependencies are resolved without pulling in gdebi
     apt-get update
     apt-get install -y --no-install-recommends /tmp/rstudio-server.deb 
-    
+
     # Configure R to use Java (writes $R_HOME/etc/javaconf)
     R CMD javareconf
     # (optional) verify rJava builds
@@ -47,7 +47,7 @@ From: rocker/r-ver:4.5
         )"
 
     ############### CRAN/BIOC packages ##################
-    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
+    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable', quiet = T)"
     R -q -e "
         pak::pkg_install(c(
             'survIDINRI',
@@ -73,7 +73,6 @@ From: rocker/r-ver:4.5
     R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
 
     ############### GitHub packages ##################
-    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
     R -q -e "
         pak::pkg_install(c(
             'mlr-org/mlr3extralearners@*release',
@@ -85,15 +84,23 @@ From: rocker/r-ver:4.5
     R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
 
      ################## Other packages #######################
-    R -e "install.packages('INLA',repos=c(getOption('repos'),INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
+    R -e "install.packages('INLA',repos=c(getOption('repos'),INLA='https://inla.r-inla-download.org/R/stable'), quiet = T, dep=TRUE)"
     
     # Make sure locale exists (helps avoid UTF-8 issues)
     echo "==> Locale (UTF-8)"
     locale-gen en_US.UTF-8 || true
 
-    echo "==> Final clean"
+    ############### Remove JDK andkeep JRE #####################
+    echo "==>Remove JDK and install JRE"
+    apt-get purge -y openjdk-17-jdk-headless && apt-get autoremove -y
+    apt-get install -y --no-install-recommends openjdk-17-jre-headless
+
+    echo "==> Final clean (safe for Apptainer)"
     apt-get clean
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache/*
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*.deb /var/cache/apt/archives/partial \
+           /root/.cache/* /root/.R/cache/* || true
+    # Optional: shrink compiled libs
+    find /usr/local/lib/R/site-library -path '*/libs/*.so' -type f -exec strip --strip-unneeded {} + 2>/dev/null || true
     
 %environment
     export LANG=en_US.UTF-8
