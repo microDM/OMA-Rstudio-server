@@ -27,6 +27,18 @@ From: rocker/rstudio:4.5.1
       > /etc/apt/sources.list.d/cranapt.list
     apt-get update
 
+    # Prefer r2u binaries
+    echo "Package: *"                                >  /etc/apt/preferences.d/99cranapt
+    echo "Pin: release o=CRAN-Apt Project"           >> /etc/apt/preferences.d/99cranapt
+    echo "Pin: release l=CRAN-Apt Packages"          >> /etc/apt/preferences.d/99cranapt
+    echo "Pin-Priority: 700"                         >> /etc/apt/preferences.d/99cranapt
+    apt-get update -qq
+
+    # --- IMPORTANT: bspm is not usable inside docker/apptainer build ---
+    # We'll install binaries with apt now; at runtime users still benefit from bspm.
+    export BSPM_DISABLE=1
+
+
     # --- Enable bspm so R uses apt binaries transparently ---
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         r-cran-bspm python3-dbus \
@@ -60,15 +72,35 @@ From: rocker/rstudio:4.5.1
         libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev \
         && rm -rf /var/lib/apt/lists/*
     
-    ########### install OMA dependencies (binary-first) ##################
-    # NOTE: 'quiet' was misspelled as 'quite' in the original.
+    ########### install OMA dependencies (binary-first + fallback) ###########
     R -q -e "install.packages('BiocManager', quiet=TRUE)"
-    R -q -e "options(BioC_mirror='https://bioconductor.org')"
+
+    # 1) Read the OMA list once in R and keep it around
     R -q -e "
-        url <- 'https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv';
-        pkgs <- read.csv(url, stringsAsFactors=FALSE)[[1]];
-        BiocManager::install(pkgs, ask=FALSE, update=FALSE)
-        "
+    url <- 'https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv';
+    pkgs <- read.csv(url, stringsAsFactors=FALSE)[[1]];
+    saveRDS(pkgs, '/tmp/oma_pkgs.rds')
+    "
+
+    # 2) Try to install as many as possible as binaries via apt:
+    #    r2u uses the naming r-cran-<pkg> and r-bioc-<pkg> (lowercase).
+    R -q -e "
+    pkgs <- readRDS('/tmp/oma_pkgs.rds');
+    writeLines(paste0('r-cran-', tolower(pkgs)), '/tmp/rcran.txt');
+    writeLines(paste0('r-bioc-', tolower(pkgs)), '/tmp/rbioc.txt');
+    "
+
+    # Best-effort installs; apt will skip unknown ones by failing that line, so we ignore errors
+    xargs -r -a /tmp/rcran.txt apt-get install -y --no-install-recommends || true
+    xargs -r -a /tmp/rbioc.txt apt-get install -y --no-install-recommends || true
+
+    # 3) Fallback: anything not present yet gets installed from R (may compile a few)
+    R -q -e "
+    pkgs <- readRDS('/tmp/oma_pkgs.rds');
+    inst <- rownames(installed.packages());
+    need <- setdiff(pkgs, inst);
+    if (length(need)) BiocManager::install(need, ask=FALSE, update=FALSE)
+    "
 
     # Your package sets (many are available as binaries via r2u)
     R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
