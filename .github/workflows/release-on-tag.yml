@@ -69,8 +69,8 @@ jobs:
           ref: main
           path: repo-main
           fetch-depth: 0
-      
-            - name: Copy TSV into repo and (re)generate README table (no deps)
+
+      - name: Copy TSV into repo and (re)generate README table (no deps)
         run: |
           cp installed_packages.tsv repo-main/installed_packages.tsv
 
@@ -108,6 +108,7 @@ jobs:
           with open(readme_path, 'w', encoding='utf-8') as out:
               out.write(txt)
           PY
+
 
       - name: Commit changes to main (installed_packages.tsv + README.md)
         uses: stefanzweifel/git-auto-commit-action@v5
