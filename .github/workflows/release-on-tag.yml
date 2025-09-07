@@ -69,6 +69,17 @@ jobs:
           ref: main
           path: repo-main
           fetch-depth: 0
+      
+      - name: Set up Python (3.x)
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas
+
 
       - name: Copy TSV into repo and (re)generate README table
         run: |
