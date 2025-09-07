@@ -1,0 +1,104 @@
+Bootstrap: docker
+From: rocker/rstudio:4.5.1
+
+%labels
+    Maintainer "Dattatray Mongad <dattatray.mongad@utu.fi>"
+    Version "1.0"
+    Description "Lightweight RStudio Server (PAM auth) with binds for shared data"
+
+%post
+    set -e
+    echo "Updating base and installing useful tools..."
+    apt-get update && apt-get install -y --no-install-recommends \
+        sudo locales ca-certificates git wget curl \
+        && rm -rf /var/lib/apt/lists/*
+
+    ########### install rJAVA ##################
+    set -e
+    apt-get update && apt-get install -y --no-install-recommends \
+        openjdk-17-jre-headless libcurl4-openssl-dev \
+        libpcre2-dev libdeflate-dev libzstd-dev liblzma-dev libbz2-dev zlib1g-dev libicu-dev libglpk-dev \
+        libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev \
+        && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+    # Configure R to use Java (writes $R_HOME/etc/javaconf)
+    R CMD javareconf
+    # (optional) verify rJava builds
+    R -q -e "install.packages('rJava', repos='https://cloud.r-project.org')"
+
+    ########### install OMA dependencies ##################
+    R -q -e "install.packages('BiocManager', quiet = T)"
+    R -q -e "
+        url <- 'https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv'
+        df <- read.csv(url)
+        packages <- df[[1]]
+        BiocManager::install(
+            packages,
+            ask=FALSE, update=FALSE
+        )"
+
+    ############### CRAN/BIOC packages ##################
+    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
+    R -q -e "
+        pak::pkg_install(c(
+            'survIDINRI',
+            'tidymodels',
+            'mlr3',
+            'mlr3verse',
+            'mlr3learners',
+            'mlr3pipelines',
+            'gtsummary',
+            'broom.helpers',
+            'randomForestSRC',
+            'smoothHR',
+            'ggsurvfit',
+            'BART',
+            'rsample',
+            'splitTools',
+            'VIM',
+            'bartMachineJARs',
+            'bartMachine'
+        ),
+        ask = FALSE)"
+    # clean caches to keep image small
+    R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
+
+    ############### GitHub packages ##################
+    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
+    R -q -e "
+        pak::pkg_install(c(
+            'mlr-org/mlr3extralearners@*release',
+            'mlr-org/mlr3proba',
+            'xoopR/distr6'
+        ),
+        ask = FALSE)"
+    # clean caches to keep image small
+    R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
+
+    # Make sure locale exists (helps avoid UTF-8 issues)
+    locale-gen en_US.UTF-8 || true
+
+    ################## Other packages #######################
+    R -e "install.packages('INLA',repos=c(getOption('repos'),INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
+    
+%environment
+    export LANG=en_US.UTF-8
+    export LC_ALL=en_US.UTF-8
+    # Per-user R libs can live in their home (outside container)
+    export R_LIBS_USER=${HOME}/R/libs
+
+%runscript
+    echo "Starting RStudio Server on port 8787 (PAM auth)..."
+    # Listen on all interfaces; PAM helper is in the image
+    exec rserver \
+      --www-address=0.0.0.0 \
+      --www-port=8787 \
+      --auth-pam-helper-path=pam-helper \
+      --server-daemonize=0
+
+%help
+    RStudio Server (OSS) with PAM auth.
+    - Connect via http://<host>:8787
+    - Users log in with their Linux accounts (PAM).
+    - Bind host /home so users see their files.
+

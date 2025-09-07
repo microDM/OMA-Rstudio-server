@@ -3,99 +3,100 @@ From: rocker/rstudio:4.5.1
 
 %labels
     Maintainer "Dattatray Mongad <dattatray.mongad@utu.fi>"
-    Version "1.0"
-    Description "Lightweight RStudio Server (PAM auth) with binds for shared data"
+    Version "1.1"
+    Description "RStudio Server (PAM) + r2u binaries; smaller image"
 
 %post
     set -e
-    echo "Updating base and installing useful tools..."
+    echo "Base tools (kept lean) ..."
     apt-get update && apt-get install -y --no-install-recommends \
-        sudo locales ca-certificates git wget curl \
+        locales ca-certificates gnupg wget \
         && rm -rf /var/lib/apt/lists/*
 
-    ########### install rJAVA ##################
-    set -e
+    # --- r2u: CRAN as Ubuntu binaries (so install.packages() pulls binaries) ---
+    # (jammy/noble both supported; rocker/rstudio:4.5.1 is jammy as of now)
+    echo "Configuring CRAN + r2u binary repos ..."
+    wget -q -O- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc \
+      | tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+    . /etc/os-release
+    echo "deb [arch=amd64] https://cloud.r-project.org/bin/linux/ubuntu ${UBUNTU_CODENAME}-cran40/" \
+      > /etc/apt/sources.list.d/cran_r.list
+    wget -q -O- https://eddelbuettel.github.io/r2u/assets/dirk_eddelbuettel_key.asc \
+      | tee -a /etc/apt/trusted.gpg.d/cranapt_key.asc
+    echo "deb [arch=amd64] https://r2u.stat.illinois.edu/ubuntu ${UBUNTU_CODENAME} main" \
+      > /etc/apt/sources.list.d/cranapt.list
+    apt-get update
+
+    # --- Enable bspm so R uses apt binaries transparently ---
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        r-cran-bspm python3-dbus \
+        && rm -rf /var/lib/apt/lists/*
+    echo 'suppressMessages(bspm::enable()); options(bspm.sudo.autodetect=TRUE)' \
+        > /usr/lib/R/etc/Rprofile.site
+
+    ######## rJava WITHOUT keeping JDK (Option A: smallest) ########
+    # Use prebuilt binary from r2u; needs only Java runtime.
     apt-get update && apt-get install -y --no-install-recommends \
-        openjdk-17-jdk-headless libcurl4-openssl-dev \
-        libpcre2-dev libdeflate-dev libzstd-dev liblzma-dev libbz2-dev zlib1g-dev libicu-dev libglpk-dev \
-        libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev
-    # Configure R to use Java (writes $R_HOME/etc/javaconf)
+        default-jre-headless r-cran-rjava \
+        && rm -rf /var/lib/apt/lists/*
+
+    # If you prefer building from CRAN instead, comment A and use B below.
+    : <<'OPTION_B'
+    apt-get update && apt-get install -y --no-install-recommends \
+        openjdk-17-jdk-headless \
+        && rm -rf /var/lib/apt/lists/*
     R CMD javareconf
-    # (optional) verify rJava builds
     R -q -e "install.packages('rJava', repos='https://cloud.r-project.org')"
+    apt-get purge -y openjdk-17-jdk-headless && apt-get autoremove -y
+    apt-get install -y --no-install-recommends openjdk-17-jre-headless
+    rm -rf /var/lib/apt/lists/*
+    OPTION_B
 
-    ########### install OMA dependencies ##################
-    R -q -e "install.packages('BiocManager', quite = T)"
+    ######## OMA deps & others (install only what you really need) ########
+    # TIP: comment out heavy geospatial libs if you don't use them.
+    apt-get update && apt-get install -y --no-install-recommends \
+        libcurl4-openssl-dev libpcre2-dev libdeflate-dev libzstd-dev \
+        liblzma-dev libbz2-dev zlib1g-dev libicu-dev libglpk-dev \
+        libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev \
+        && rm -rf /var/lib/apt/lists/*
+    
+    ########### install OMA dependencies (binary-first) ##################
+    # NOTE: 'quiet' was misspelled as 'quite' in the original.
+    R -q -e "install.packages('BiocManager', quiet=TRUE)"
+    R -q -e "options(BioC_mirror='https://bioconductor.org')"
     R -q -e "
-        url <- 'https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv'
-        df <- read.csv(url)
-        packages <- df[[1]]
-        BiocManager::install(
-            packages
-        )"
+        url <- 'https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv';
+        pkgs <- read.csv(url, stringsAsFactors=FALSE)[[1]];
+        BiocManager::install(pkgs, ask=FALSE, update=FALSE)
+        "
 
-    ############### CRAN/BIOC packages ##################
+    # Your package sets (many are available as binaries via r2u)
     R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
-    R -q -e "
-        pak::pkg_install(c(
-            'survIDINRI',
-            'tidymodels',
-            'mlr3',
-            'mlr3verse',
-            'mlr3learners',
-            'mlr3pipelines',
-            'gtsummary',
-            'broom.helpers',
-            'randomForestSRC',
-            'smoothHR',
-            'ggsurvfit',
-            'BART',
-            'rsample',
-            'splitTools',
-            'VIM',
-            'bartMachineJARs',
-            'bartMachine'
-        ),
-        ask = FALSE)"
-    # clean caches to keep image small
-    R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
+    R -q -e "pak::pkg_install(c(
+        'survIDINRI','tidymodels','mlr3','mlr3verse','mlr3learners','mlr3pipelines',
+        'gtsummary','broom.helpers','randomForestSRC','smoothHR','ggsurvfit',
+        'BART','rsample','splitTools','VIM','bartMachineJARs','bartMachine'
+      ), ask=FALSE)"
+    R -q -e "pak::cache_delete()"
 
-    ############### GitHub packages ##################
-    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable')"
-    R -q -e "
-        pak::pkg_install(c(
-            'mlr-org/mlr3extralearners@*release',
-            'mlr-org/mlr3proba',
-            'xoopR/distr6'
-        ),
-        ask = FALSE)"
-    # clean caches to keep image small
-    R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
+    # GitHub packages; pak will still use binaries where possible via bspm
+    R -q -e "pak::pkg_install(c(
+        'mlr-org/mlr3extralearners@*release','mlr-org/mlr3proba','xoopR/distr6'
+      ), ask=FALSE)"
+    R -q -e "pak::cache_delete()"
 
-    # Make sure locale exists (helps avoid UTF-8 issues)
+    # INLA (special repo)
+    R -q -e "install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
+
+    # Locale
     locale-gen en_US.UTF-8 || true
 
-    ################## Other packages #######################
-    R -e "install.packages('INLA',repos=c(getOption('repos'),INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)"
-    
 %environment
     export LANG=en_US.UTF-8
     export LC_ALL=en_US.UTF-8
-    # Per-user R libs can live in their home (outside container)
     export R_LIBS_USER=${HOME}/R/libs
 
 %runscript
     echo "Starting RStudio Server on port 8787 (PAM auth)..."
-    # Listen on all interfaces; PAM helper is in the image
-    exec rserver \
-      --www-address=0.0.0.0 \
-      --www-port=8787 \
-      --auth-pam-helper-path=pam-helper \
-      --server-daemonize=0
-
-%help
-    RStudio Server (OSS) with PAM auth.
-    - Connect via http://<host>:8787
-    - Users log in with their Linux accounts (PAM).
-    - Bind host /home so users see their files.
-
+    exec rserver --www-address=0.0.0.0 --www-port=8787 \
+      --auth-pam-helper-path=pam-helper --server-daemonize=0
