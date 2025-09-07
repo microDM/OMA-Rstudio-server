@@ -18,7 +18,7 @@ From: rocker/rstudio:4.5.1
     apt-get update && apt-get install -y --no-install-recommends \
         openjdk-17-jdk-headless libcurl4-openssl-dev \
         libpcre2-dev libdeflate-dev libzstd-dev liblzma-dev libbz2-dev zlib1g-dev libicu-dev libglpk-dev \
-        libgsl-dev
+        libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev
     # Configure R to use Java (writes $R_HOME/etc/javaconf)
     R CMD javareconf
     # (optional) verify rJava builds
