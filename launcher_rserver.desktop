@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=RStudio Server (OMA)
+Comment=Launch RStudio Server inside the rstudio_server.sif and open Firefox
+# NOTE: update /path/to/launcher.sh
+Exec=/bin/bash -lc 'OPEN_BROWSER=1 BROWSER_CMD=firefox "/media/volume/OMA_container/OMA-rserver/launcher.sh"'
+Terminal=true
+Icon=rstudio
+Categories=Development;Science;Education;

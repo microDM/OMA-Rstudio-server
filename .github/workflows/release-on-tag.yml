@@ -109,7 +109,6 @@ jobs:
               out.write(txt)
           PY
 
-
       - name: Commit changes to main (installed_packages.tsv + README.md)
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
