@@ -28,12 +28,6 @@ Follow these steps:
 
 ## File structure inside new containers (Rstudio-server)
 
-1. **User specific directories**: All the directories from your user (Ex: Desktop, Documents, etc.) will be available at `/home/$USER`.
-
-2. **Old workspaces**: The workspace folder from previous container (`/media/volume/Workspaces/users/$USER`) is accessible directly from `/home/$USER/Workspace`
-3. Exports: `/home/$USER/Exports`
-4. shared-projects
-5. SD-Connect
 
 | |Inside container (Rstudio)|Location on drive|Description|
 |---|---|---|---|

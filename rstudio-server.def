@@ -77,7 +77,10 @@ From: rocker/r-ver:4.5
         pak::pkg_install(c(
             'mlr-org/mlr3extralearners@*release',
             'mlr-org/mlr3proba',
-            'xoopR/distr6'
+            'xoopR/distr6',
+            'zdk123/SpiecEasi',
+            'GraceYoon/SPRING',
+            'stefpeschel/NetCoMi'
         ),
         ask = FALSE)"
     # clean caches to keep image small
