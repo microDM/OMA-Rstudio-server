@@ -18,9 +18,9 @@ jobs:
       OWNER: ${{ github.repository_owner }}
       REPO:  ${{ github.event.repository.name }}
       TAG:   ${{ github.ref_name }} # e.g., v1.2.3
-      # artifact name in GHCR: ghcr.io/OWNER/REPO/rstudio-server-sif:TAG
-      OCI_REF: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/rstudio-server-sif:${{ github.ref_name }}
-
+      # docker.io/<username>/<repo>:<tag>
+      OCI_REF: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/rstudio-server-oma:${{ github.ref_name }}
+      
     steps:
       - name: Checkout code at tag
         uses: actions/checkout@v4
@@ -55,14 +55,18 @@ jobs:
       - name: Set up ORAS
         uses: oras-project/setup-oras@v1
 
-      - name: Login to GHCR
-        run: oras login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push SIF to GHCR (ORAS)
+      - name: Login to Docker Hub (ORAS)
         run: |
-          # Use a sensible media type; custom is fine for SIF blobs
+          oras login registry-1.docker.io \
+          -u "${{ secrets.DOCKERHUB_USERNAME }}" \
+          -p "${{ secrets.DOCKERHUB_TOKEN }}"
+
+      - name: Push SIF to Docker Hub (ORAS)
+        run: |
           oras push "${{ env.OCI_REF }}" \
-            rstudio_server.sif:application/vnd.apptainer.image.sif
+          --artifact-type application/vnd.apptainer.image.sif \
+          --annotation "org.opencontainers.image.title=rstudio_server.sif" \
+          rstudio_server.sif:application/vnd.apptainer.image.sif
 
       # ---- Create/Update Release with small assets + helpful body ----------
       - name: Create/Update GitHub Release
@@ -75,12 +79,11 @@ jobs:
             rstudio_server.sif.sha256
           body: |
             ## RStudio Server SIF
-            The SIF image is published to GHCR as an OCI/ORAS artifact:
+            The SIF image is published to Docker Hub as an OCI/ORAS artifact:
 
             ```
             # Pull with ORAS:
-            oras pull ${{ env.OCI_REF }} \
-              -a  # downloads rstudio_server.sif artifact
+            oras pull docker.io/${{ secrets.DOCKERHUB_USERNAME }}/rstudio-server-oma:${{ env.TAG }} -a  # downloads rstudio_server.sif artifact
             ```
 
             Verify checksum:
