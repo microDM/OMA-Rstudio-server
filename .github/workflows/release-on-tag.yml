@@ -8,19 +8,16 @@ on:
 
 permissions:
   contents: write
-  packages: write     # needed to push to GHCR
+  packages: write   # not strictly needed for Docker Hub, but ok to keep
 
 jobs:
   build-sif:
     runs-on: ubuntu-22.04
     env:
-      REGISTRY: ghcr.io
-      OWNER: ${{ github.repository_owner }}
-      REPO:  ${{ github.event.repository.name }}
-      TAG:   ${{ github.ref_name }} # e.g., v1.2.3
-      # docker.io/<username>/<repo>:<tag>
+      TAG:   ${{ github.ref_name }}  # e.g., v1.2.3
+      # docker.io/<username>/<repo>:<tag>   <- repo should exist on Docker Hub and be lowercase
       OCI_REF: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/rstudio-server-oma:${{ github.ref_name }}
-      
+
     steps:
       - name: Checkout code at tag
         uses: actions/checkout@v4
@@ -51,22 +48,21 @@ jobs:
           sha256sum rstudio_server.sif > rstudio_server.sif.sha256
           sha256sum installed_packages.tsv > installed_packages.tsv.sha256
 
-      # ---- Push SIF to GHCR as an ORAS artifact ---------------------------
+      # ---- Push SIF to Docker Hub as an ORAS artifact ---------------------
       - name: Set up ORAS
         uses: oras-project/setup-oras@v1
 
       - name: Login to Docker Hub (ORAS)
         run: |
-          oras login registry-1.docker.io \
-          -u "${{ secrets.DOCKERHUB_USERNAME }}" \
-          -p "${{ secrets.DOCKERHUB_TOKEN }}"
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | oras login docker.io \
+            -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Push SIF to Docker Hub (ORAS)
         run: |
           oras push "${{ env.OCI_REF }}" \
-          --artifact-type application/vnd.apptainer.image.sif \
-          --annotation "org.opencontainers.image.title=rstudio_server.sif" \
-          rstudio_server.sif:application/vnd.apptainer.image.sif
+            --artifact-type application/vnd.apptainer.image.sif \
+            --annotation "org.opencontainers.image.title=rstudio_server.sif" \
+            rstudio_server.sif:application/vnd.apptainer.image.sif
 
       # ---- Create/Update Release with small assets + helpful body ----------
       - name: Create/Update GitHub Release
@@ -79,15 +75,16 @@ jobs:
             rstudio_server.sif.sha256
           body: |
             ## RStudio Server SIF
-            The SIF image is published to Docker Hub as an OCI/ORAS artifact:
+            The SIF image is published to Docker Hub as an OCI/ORAS artifact.
 
+            **Pull with ORAS**
+            ```bash
+            oras pull docker.io/${{ secrets.DOCKERHUB_USERNAME }}/rstudio-server-oma:${{ env.TAG }} -a
             ```
-            # Pull with ORAS:
-            oras pull docker.io/${{ secrets.DOCKERHUB_USERNAME }}/rstudio-server-oma:${{ env.TAG }} -a  # downloads rstudio_server.sif artifact
-            ```
+            This will download `rstudio_server.sif` into the current directory.
 
-            Verify checksum:
-            ```
+            **Verify checksum**
+            ```bash
             sha256sum -c rstudio_server.sif.sha256
             ```
 
@@ -113,9 +110,8 @@ jobs:
           txt = open(readme_path,'r',encoding='utf-8').read() if os.path.exists(readme_path) else '# Project\n'
           START, END = '<!-- BEGIN: INSTALLED_PACKAGES -->','<!-- END: INSTALLED_PACKAGES -->'
           block = f"{START}\n\n## Installed Packages\n\n{table_md}\n\n{END}\n"
-          import re as _re
           if START in txt and END in txt:
-              txt = _re.sub(START + r'.*?' + END, block, txt, flags=_re.S)
+              txt = re.sub(START + r'.*?' + END, block, txt, flags=re.S)
           else:
               txt = txt.rstrip() + '\n\n' + block + '\n'
           open(readme_path,'w',encoding='utf-8').write(txt)

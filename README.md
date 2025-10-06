@@ -34,7 +34,7 @@ Follow these steps:
 |**User specific directories**|`/home/$USER`|`/home/$USER`|All user files. Will not be accessible by other users. Can be used to store codes/analysis.|
 |**Workspaces**|`/home/$USER/Workspace`|`/media/volume/Workspaces/users/$USER`|This folder is accessible for every user. You can store codes which you want to share with other users.|
 |**Exports**|`/home/$USER/Exports`|`/media/volume/Exports/users/$USER`|This folder is intended for storing files which you want to export. This is also accessible for other users.|
-|**Shared-projects (read-only)**|`/media/volume/project_2013220` or `/home/$USER/shared_project`|`/media/volume/project_2013220`|All files from SD-connect are copied in this folder and TSE objects are accessible|
+|**Shared-projects (read-only)**|`/media/project_2013220` or `/home/$USER/shared_project`|`/media/volume/project_2013220`|All files from SD-connect are copied in this folder and TSE objects are accessible|
 |**SD-connect (read-only)**|`/home/$USER/Projects/SD-Connect`|`/home/$USER/Projects/SD-Connect`|Mounted SD-connect drive|
 
 
