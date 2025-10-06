@@ -3,15 +3,24 @@ name: Build and Release RStudio Server SIF
 on:
   push:
     tags:
-      - 'v*'          # build on version tags like v1.0
+      - 'v*'
   workflow_dispatch:
 
 permissions:
-  contents: write      # needed for committing and releasing
+  contents: write
+  packages: write     # needed to push to GHCR
 
 jobs:
   build-sif:
     runs-on: ubuntu-22.04
+    env:
+      REGISTRY: ghcr.io
+      OWNER: ${{ github.repository_owner }}
+      REPO:  ${{ github.event.repository.name }}
+      TAG:   ${{ github.ref_name }} # e.g., v1.2.3
+      # artifact name in GHCR: ghcr.io/OWNER/REPO/rstudio-server-sif:TAG
+      OCI_REF: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/rstudio-server-sif:${{ github.ref_name }}
+
     steps:
       - name: Checkout code at tag
         uses: actions/checkout@v4
@@ -30,7 +39,6 @@ jobs:
         run: |
           apptainer build rstudio_server.sif rstudio-server.def
 
-      # --- 1) Run R inside the SIF to export installed packages -----------
       - name: Export installed R packages from SIF
         run: |
           apptainer exec rstudio_server.sif Rscript -e "
@@ -38,31 +46,49 @@ jobs:
             write.table(ip, file = 'installed_packages.tsv', sep = '\t', row.names = FALSE, quote = FALSE)
           "
 
-      # Upload both files as run artifacts (nice for quick downloads from the run)
-      - name: Upload SIF as workflow artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: rstudio_server.sif
-          path: rstudio_server.sif
+      - name: Generate checksums
+        run: |
+          sha256sum rstudio_server.sif > rstudio_server.sif.sha256
+          sha256sum installed_packages.tsv > installed_packages.tsv.sha256
 
-      - name: Upload package list as workflow artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: installed_packages.tsv
-          path: installed_packages.tsv
+      # ---- Push SIF to GHCR as an ORAS artifact ---------------------------
+      - name: Set up ORAS
+        uses: oras-project/setup-oras@v1
 
-      # --- 2) Attach both files to the tag's GitHub Release ----------------
-      - name: Create/Update GitHub Release and upload assets
-        uses: softprops/action-gh-release@v1
+      - name: Login to GHCR
+        run: oras login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push SIF to GHCR (ORAS)
+        run: |
+          # Use a sensible media type; custom is fine for SIF blobs
+          oras push "${{ env.OCI_REF }}" \
+            rstudio_server.sif:application/vnd.apptainer.image.sif
+
+      # ---- Create/Update Release with small assets + helpful body ----------
+      - name: Create/Update GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.TAG }}
           files: |
-            rstudio_server.sif
             installed_packages.tsv
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            installed_packages.tsv.sha256
+            rstudio_server.sif.sha256
+          body: |
+            ## RStudio Server SIF
+            The SIF image is published to GHCR as an OCI/ORAS artifact:
 
-      # --- 3) Commit installed_packages.tsv + update README on main --------
-      # Check out main branch into a subfolder, copy TSV, render markdown table, commit
+            ```
+            # Pull with ORAS:
+            oras pull ${{ env.OCI_REF }} \
+              -a  # downloads rstudio_server.sif artifact
+            ```
+
+            Verify checksum:
+            ```
+            sha256sum -c rstudio_server.sif.sha256
+            ```
+
+      # ---- Optionally persist the TSVs to main branch ----------------------
       - name: Checkout main branch
         uses: actions/checkout@v4
         with:
@@ -73,40 +99,23 @@ jobs:
       - name: Copy TSV into repo and (re)generate README table (no deps)
         run: |
           cp installed_packages.tsv repo-main/installed_packages.tsv
-
           python - << 'PY'
           import csv, os, re
-
           tsv_path = os.path.join('repo-main', 'installed_packages.tsv')
-          with open(tsv_path, newline='') as f:
-              rows = list(csv.DictReader(f, delimiter='\t'))
-
-          # Sort for stable diffs
+          rows = list(csv.DictReader(open(tsv_path), delimiter='\t'))
           rows.sort(key=lambda r: r['Package'])
-
-          # Build markdown table
-          lines = ['| Package | Version |', '|---|---|']
-          for r in rows:
-              lines.append(f"| {r['Package']} | {r['Version']} |")
+          lines = ['| Package | Version |','|---|---|'] + [f"| {r['Package']} | {r['Version']} |" for r in rows]
           table_md = "\n".join(lines)
-
-          readme_path = os.path.join('repo-main', 'README.md')
-          if os.path.exists(readme_path):
-              txt = open(readme_path, 'r', encoding='utf-8').read()
-          else:
-              txt = '# Project\n'
-
-          START = '<!-- BEGIN: INSTALLED_PACKAGES -->'
-          END   = '<!-- END: INSTALLED_PACKAGES -->'
+          readme_path = os.path.join('repo-main','README.md')
+          txt = open(readme_path,'r',encoding='utf-8').read() if os.path.exists(readme_path) else '# Project\n'
+          START, END = '<!-- BEGIN: INSTALLED_PACKAGES -->','<!-- END: INSTALLED_PACKAGES -->'
           block = f"{START}\n\n## Installed Packages\n\n{table_md}\n\n{END}\n"
-
+          import re as _re
           if START in txt and END in txt:
-              txt = re.sub(START + r'.*?' + END, block, txt, flags=re.S)
+              txt = _re.sub(START + r'.*?' + END, block, txt, flags=_re.S)
           else:
               txt = txt.rstrip() + '\n\n' + block + '\n'
-
-          with open(readme_path, 'w', encoding='utf-8') as out:
-              out.write(txt)
+          open(readme_path,'w',encoding='utf-8').write(txt)
           PY
 
       - name: Commit changes to main (installed_packages.tsv + README.md)
