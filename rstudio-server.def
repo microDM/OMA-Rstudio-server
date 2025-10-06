@@ -80,7 +80,8 @@ From: rocker/r-ver:4.5
             'xoopR/distr6',
             'zdk123/SpiecEasi',
             'GraceYoon/SPRING',
-            'stefpeschel/NetCoMi'
+            'stefpeschel/NetCoMi',
+            'ijlyttle/projthis'
         ),
         ask = FALSE)"
     # clean caches to keep image small
