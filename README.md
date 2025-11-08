@@ -9,7 +9,12 @@ This github-actions workflow creates a container with preinstalled R, Rstudio-se
 5. [git-cmds](git-cmds)
 6. [.github/workflows/release-on-tag.yml](.github/workflows/release-on-tag.yml)
 
-After successful run of github actions this will create a container `rstudio-server.sif` which can be downloaded from [release page](https://github.com/microDM/OMA-Rstudio-server/releases).
+After successful run of github actions the `.sif` file will be pushed on [docker hub](https://hub.docker.com/repository/docker/microdm/rstudio-server-oma/general).
+
+This can be downloaded using `oras`
+```
+oras pull docker.io/microdm/rstudio-server-oma:v1.0
+```
 
 ## Using container on SD-Desktop:
 
