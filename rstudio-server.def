@@ -70,7 +70,17 @@ From: rocker/r-ver:4.5
             'pracma',
             'MatrixEQTL',
             'riskRegression',
-            'PredictABEL'
+            'PredictABEL',
+            'brms',
+            'svglite',
+            'ggthemes',
+            'mlrMBO',
+            'precrec',
+            'DiceKriging',
+            'rgenoud',
+            'rcompanion',
+            'magrittr',
+            'biomformat'
         ),
         ask = FALSE)"
     # clean caches to keep image small
@@ -86,7 +96,9 @@ From: rocker/r-ver:4.5
             'GraceYoon/SPRING',
             'stefpeschel/NetCoMi',
             'ijlyttle/projthis',
-            'lasy/alto'
+            'lasy/alto',
+            "BlakeRMills/MetBrewer",
+            'catboost/catboost'
         ),
         ask = FALSE)"
     # clean caches to keep image small
