@@ -81,6 +81,8 @@ From: rocker/r-ver:4.5
             'rcompanion',
             'magrittr',
             'biomformat',
+            'gdtools',
+            'ggiraph',
             'ggtree'
         ),
         ask = FALSE)"
@@ -98,8 +100,8 @@ From: rocker/r-ver:4.5
             'stefpeschel/NetCoMi',
             'ijlyttle/projthis',
             'lasy/alto',
+            'davidsjoberg/ggstream',
             'BlakeRMills/MetBrewer',
-            'catboost/catboost'
         ),
         ask = FALSE)"
     # clean caches to keep image small
@@ -107,7 +109,8 @@ From: rocker/r-ver:4.5
 
      ################## Other packages #######################
     R -e "install.packages('INLA',repos=c(getOption('repos'),INLA='https://inla.r-inla-download.org/R/stable'), quiet = T, dep=TRUE)"
-    
+    R -q -e "remotes::install_github('catboost/catboost', subdir = 'catboost/R-package')"
+
     # Make sure locale exists (helps avoid UTF-8 issues)
     echo "==> Locale (UTF-8)"
     locale-gen en_US.UTF-8 || true
