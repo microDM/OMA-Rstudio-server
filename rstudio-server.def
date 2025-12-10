@@ -80,7 +80,8 @@ From: rocker/r-ver:4.5
             'rgenoud',
             'rcompanion',
             'magrittr',
-            'biomformat'
+            'biomformat',
+            'ggtree'
         ),
         ask = FALSE)"
     # clean caches to keep image small
@@ -97,7 +98,7 @@ From: rocker/r-ver:4.5
             'stefpeschel/NetCoMi',
             'ijlyttle/projthis',
             'lasy/alto',
-            "BlakeRMills/MetBrewer",
+            'BlakeRMills/MetBrewer',
             'catboost/catboost'
         ),
         ask = FALSE)"
