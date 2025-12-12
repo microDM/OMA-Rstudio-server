@@ -83,7 +83,8 @@ From: rocker/r-ver:4.5
             'magrittr',
             'biomformat',
             'gdtools',
-            'ggiraph'
+            'ggiraph',
+            'survminer'
         ),
         ask = FALSE)"
     # clean caches to keep image small
