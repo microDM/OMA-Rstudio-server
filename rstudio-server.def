@@ -36,6 +36,8 @@ From: rocker/r-ver:4.5
     R -q -e "install.packages('rJava', repos='https://cloud.r-project.org')"
 
     ########### install OMA dependencies ##################
+    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable', quiet = T)"
+    R -q -e "pak::pkg_install('ggtree')"
     R -q -e "install.packages('BiocManager', quiet = T)"
     R -q -e "
         url <- 'https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv'
@@ -47,7 +49,6 @@ From: rocker/r-ver:4.5
         )"
 
     ############### CRAN/BIOC packages ##################
-    R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable', quiet = T)"
     R -q -e "
         pak::pkg_install(c(
             'survIDINRI',
@@ -82,8 +83,7 @@ From: rocker/r-ver:4.5
             'magrittr',
             'biomformat',
             'gdtools',
-            'ggiraph',
-            'ggtree'
+            'ggiraph'
         ),
         ask = FALSE)"
     # clean caches to keep image small
@@ -101,7 +101,7 @@ From: rocker/r-ver:4.5
             'ijlyttle/projthis',
             'lasy/alto',
             'davidsjoberg/ggstream',
-            'BlakeRMills/MetBrewer',
+            'BlakeRMills/MetBrewer'
         ),
         ask = FALSE)"
     # clean caches to keep image small
