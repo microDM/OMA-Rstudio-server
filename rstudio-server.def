@@ -84,7 +84,9 @@ From: rocker/r-ver:4.5
             'biomformat',
             'gdtools',
             'ggiraph',
-            'survminer'
+            'survminer',
+            'prodlim',
+            'pec'
         ),
         ask = FALSE)"
     # clean caches to keep image small
