@@ -153,6 +153,7 @@ estimability	1.5.1
 evaluate	1.0.5
 evd	2.3-7.1
 Exact	3.3
+exactRankTests	0.8-35
 ExperimentHub	3.0.0
 expm	1.0-0
 factoextra	1.0.7
@@ -296,6 +297,8 @@ jsonlite	2.0.0
 juicyjuice	0.1.0
 KEGGREST	1.50.0
 kernlab	0.9-33
+km.ci	0.5-6
+KMsurv	0.1-6
 knitr	1.50
 labeling	0.4.3
 labelled	2.16.0
@@ -335,6 +338,7 @@ MatrixEQTL	2.3
 MatrixGenerics	1.22.0
 MatrixModels	0.5-4
 matrixStats	1.5.0
+maxstat	0.7-26
 mclust	6.1.2
 mediation	4.5.1
 memoise	2.0.1
@@ -614,6 +618,8 @@ SuperLearner	2.0-29
 survC1	1.0-3
 survdistr	0.0.1
 survIDINRI	1.1-2
+survminer	0.5.1
+survMisc	0.5.6
 svglite	2.2.2
 svUnit	1.0.8
 sys	3.4.3
