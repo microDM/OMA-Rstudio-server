@@ -86,7 +86,18 @@ From: rocker/r-ver:4.5
             'ggiraph',
             'survminer',
             'prodlim',
-            'pec'
+            'pec',
+            'timeROC',
+            'R.utils',
+            'CoxBoost',
+            'timeROC',
+            'MicrobiomeStat',
+            'survivalROC',
+            'randomForestSRC',
+            'forestplot',
+            'ggfortify',
+            'openxlsx',
+            'GGally'
         ),
         ask = FALSE)"
     # clean caches to keep image small
