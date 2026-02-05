@@ -103,6 +103,9 @@ From: rocker/r-ver:4.5
     # clean caches to keep image small
     R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
 
+    # install huge for NetCoMi dependencies
+    R -q -e "install.packages('https://cran.r-project.org/src/contrib/Archive/huge/huge_1.3.5.tar.gz', repos = NULL, type='source')"
+
     ############### GitHub packages ##################
     R -q -e "
         pak::pkg_install(c(
