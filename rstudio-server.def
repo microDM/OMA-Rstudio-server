@@ -97,7 +97,8 @@ From: rocker/r-ver:4.5
             'forestplot',
             'ggfortify',
             'openxlsx',
-            'GGally'
+            'GGally',
+            'stringdist'
         ),
         ask = FALSE)"
     # clean caches to keep image small
@@ -118,7 +119,8 @@ From: rocker/r-ver:4.5
             'ijlyttle/projthis',
             'lasy/alto',
             'davidsjoberg/ggstream',
-            'BlakeRMills/MetBrewer'
+            'BlakeRMills/MetBrewer',
+            'krisrs1128/multimedia'
         ),
         ask = FALSE)"
     # clean caches to keep image small
