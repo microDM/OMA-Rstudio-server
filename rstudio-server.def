@@ -51,6 +51,7 @@ From: rocker/r-ver:4.5
     ############### CRAN/BIOC packages ##################
     R -q -e "
         pak::pkg_install(c(
+            'devtools',
             'survIDINRI',
             'tidymodels',
             'mlr3',
@@ -107,12 +108,16 @@ From: rocker/r-ver:4.5
     # install huge for NetCoMi dependencies
     R -q -e "install.packages('https://cran.r-project.org/src/contrib/Archive/huge/huge_1.3.5.tar.gz', repos = NULL, type='source')"
 
+    # install pulsar for NetCoMi dependencies
+    R -q -e "install.packages('https://cran.r-project.org/src/contrib/Archive/pulsar/pulsar_0.3.11.tar.gz', repos = NULL, type='source')"
+
+
     ############### GitHub packages ##################
+    R -q -e 'pak::pak("mlr-org/mlr3proba")'
     R -q -e "
         pak::pkg_install(c(
+            'mlr-org/distr6',
             'mlr-org/mlr3extralearners@*release',
-            'mlr-org/mlr3proba',
-            'xoopR/distr6',
             'zdk123/SpiecEasi',
             'GraceYoon/SPRING',
             'stefpeschel/NetCoMi',
