@@ -99,7 +99,8 @@ From: rocker/r-ver:4.5
             'ggfortify',
             'openxlsx',
             'GGally',
-            'stringdist'
+            'stringdist',
+            'sf'
         ),
         ask = FALSE)"
     # clean caches to keep image small
@@ -132,7 +133,7 @@ From: rocker/r-ver:4.5
     R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
 
      ################## Other packages #######################
-    R -e "install.packages('INLA',repos=c(getOption('repos'),INLA='https://inla.r-inla-download.org/R/stable'), quiet = T, dep=TRUE)"
+    R -e 'install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)'
     R -q -e "remotes::install_github('catboost/catboost', subdir = 'catboost/R-package')"
 
     # Make sure locale exists (helps avoid UTF-8 issues)
