@@ -67,6 +67,7 @@ cellranger	1.1.0
 checkmate	2.3.4
 cigarillo	1.0.0
 circlize	0.4.17
+classInt	0.4-11
 cli	3.6.5
 clipr	0.8.0
 clock	0.7.4
@@ -99,7 +100,7 @@ dada2	1.38.0
 dagitty	0.3-4
 data.table	1.18.2.1
 data.tree	1.2.0
-DBI	1.2.3
+DBI	1.3.0
 dbplyr	2.5.2
 DECIPHER	3.6.0
 decontam	1.30.0
@@ -112,6 +113,7 @@ Deriv	4.2.0
 desc	1.4.3
 DescTools	0.99.60
 devtools	2.4.6
+dfidx	0.2-0
 diagram	1.6.5
 DiagrammeR	1.0.11
 dials	1.4.2
@@ -131,6 +133,7 @@ doFuture	1.2.1
 doParallel	1.0.17
 doRNG	1.8.6.3
 doSNOW	1.0.20
+dotCall64	1.2
 downlit	0.4.5
 dplyr	1.2.0
 dqrng	0.4.1
@@ -138,6 +141,7 @@ DT	0.34.0
 dtplyr	1.3.3
 dynamicTreeCut	1.63-1
 e1071	1.7-17
+Ecdat	0.4.7
 ECOSolveR	0.6.1
 egg	0.4.5
 ellipse	0.5.0
@@ -146,6 +150,7 @@ emmeans	2.0.1
 energy	1.7-12
 estimability	1.5.1
 evaluate	1.0.5
+evd	2.3-7.1
 Exact	3.3
 exactRankTests	0.8-35
 ExperimentHub	3.0.0
@@ -155,16 +160,19 @@ FactoMineR	2.13
 fansi	1.0.7
 farver	2.1.2
 fastcluster	1.3.0
+fastGHQuad	1.0.1
 fastmap	1.2.0
 fastmatch	1.1-8
 fBasics	4052.98
 fdrtool	1.2.18
 fido	1.1.2
+fields	17.1
 filelock	1.0.3
 filematrix	1.3
 fillpattern	1.0.3
 flashClust	1.01-2
 flexmix	2.3-20
+fmesher	0.7.0
 fMultivar	4031.84
 FNN	1.1.4.1
 fontawesome	0.5.3
@@ -212,7 +220,7 @@ ggplotify	0.1.3
 ggpubr	0.6.3
 ggraph	2.2.2
 ggrastr	1.0.2
-ggrepel	0.9.6
+ggrepel	0.9.7
 ggridges	0.5.7
 ggsci	4.2.0
 ggsignif	0.6.4
@@ -272,6 +280,9 @@ igraph	2.2.2
 impute	1.84.0
 infer	1.1.0
 ini	0.3.1
+INLA	25.10.19
+INLAspacetime	0.1.13
+INLAtools	0.0.9
 inline	0.3.21
 interp	1.1-6
 ipred	0.9-15
@@ -288,8 +299,6 @@ jsonlite	2.0.0
 juicyjuice	0.1.0
 KEGGREST	1.50.0
 kernlab	0.9-33
-km.ci	0.5-6
-KMsurv	0.1-6
 knitr	1.51
 labeling	0.4.3
 labelled	2.16.0
@@ -323,6 +332,7 @@ lubridate	1.9.5
 maaslin3	1.2.0
 magic	1.6-1
 magrittr	2.0.4
+maps	3.4.3
 markdown	2.0
 MatrixEQTL	2.3
 MatrixGenerics	1.22.0
@@ -353,6 +363,7 @@ mitml	0.4-5
 mixedCCA	1.6.3
 mlbench	2.1-7
 MLmetrics	1.1.3
+mlogit	1.1-3
 mlr	2.19.3
 mlr3	1.4.0
 mlr3cluster	0.2.0
@@ -546,8 +557,10 @@ rstatix	0.7.3
 rstudioapi	0.18.0
 rsvd	1.0.5
 Rtsne	0.17
+runjags	2.2.2-5
 rversions	3.0.0
 rvest	1.0.5
+s2	1.1.9
 S4Arrays	1.10.1
 S4Vectors	0.48.0
 S7	0.2.1
@@ -565,6 +578,7 @@ Seqinfo	1.0.0
 seriation	1.5.8
 sessioninfo	1.2.3
 set6	0.2.6
+sf	1.1-0
 sfd	0.1.0
 shadowtext	0.1.6
 shape	1.4.6.1
@@ -583,11 +597,15 @@ SnowballC	0.7.1
 sourcetools	0.1.7-1
 sp	2.2-1
 spacefillr	0.4.0
+spam	2.11-3
 SparseArray	1.10.8
 SparseM	1.84-2
 sparseMatrixStats	1.22.0
 sparsevctrs	0.3.6
+spData	2.3.4
+spdep	1.4-2
 SpiecEasi	1.99.0
+splancs	2.01-45
 splitTools	1.0.1
 SPRING	1.0.4
 SQUAREM	2021.1
@@ -606,8 +624,7 @@ survC1	1.0-3
 survdistr	0.0.1
 survIDINRI	1.1-2
 survivalROC	1.0.3.1
-survminer	0.5.1
-survMisc	0.5.6
+survminer	0.5.2
 svglite	2.2.2
 svUnit	1.0.8
 sys	3.4.3
@@ -615,6 +632,7 @@ systemfonts	1.3.1
 T4transport	0.1.8
 tailor	0.1.0
 tensorA	0.36.2.1
+terra	1.8-93
 testthat	3.3.2
 textshaping	1.0.4
 TH.data	1.1-5
@@ -625,6 +643,7 @@ tidymodels	1.4.1
 tidyr	1.3.2
 tidyselect	1.2.1
 tidySingleCellExperiment	1.20.1
+tidyterra	1.0.0
 tidytext	0.4.3
 tidytree	0.4.7
 tidyverse	2.0.0
@@ -645,6 +664,7 @@ tune	2.0.1
 tweenr	2.0.3
 tzdb	0.5.0
 ucminf	1.2.2
+units	1.0-0
 urca	1.3-4
 urlchecker	1.0.1
 usethis	3.2.1
@@ -668,6 +688,7 @@ webshot	0.5.5
 WGCNA	1.74
 whisker	0.4.1
 withr	3.0.2
+wk	0.9.5
 workflows	1.3.0
 workflowsets	1.1.1
 xfun	0.56
