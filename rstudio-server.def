@@ -126,13 +126,15 @@ From: rocker/r-ver:4.5
             'lasy/alto',
             'davidsjoberg/ggstream',
             'BlakeRMills/MetBrewer',
-            'krisrs1128/multimedia'
+            'krisrs1128/multimedia',
+            'mixOmicsTeam/mixOmics'
         ),
         ask = FALSE)"
     # clean caches to keep image small
     R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
 
      ################## Other packages #######################
+
     R -e 'install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)'
     R -q -e "remotes::install_github('catboost/catboost', subdir = 'catboost/R-package')"
 
