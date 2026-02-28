@@ -252,6 +252,7 @@ gridExtra	2.3
 gridGraphics	0.5-1
 gridtext	0.1.6
 gsEasy	1.5
+gsignal	0.3-7
 gsl	2.1-9
 gss	2.2-10
 gt	1.3.0
@@ -361,11 +362,12 @@ mirai	2.6.0
 missForest	1.6.1
 mitml	0.4-5
 mixedCCA	1.6.3
+mixOmics	6.32.0
 mlbench	2.1-7
 MLmetrics	1.1.3
 mlogit	1.1-3
 mlr	2.19.3
-mlr3	1.4.0
+mlr3	1.5.0
 mlr3cluster	0.2.0
 mlr3cmprsk	0.0.1
 mlr3data	0.9.0
@@ -375,9 +377,9 @@ mlr3fselect	1.5.0
 mlr3hyperband	1.0.0
 mlr3inferr	0.2.1
 mlr3learners	0.14.0
-mlr3mbo	0.3.3
+mlr3mbo	1.0.0
 mlr3measures	1.2.0
-mlr3misc	0.20.0
+mlr3misc	0.21.0
 mlr3pipelines	0.10.0
 mlr3proba	0.8.8
 mlr3tuning	1.5.1
@@ -412,7 +414,7 @@ nortest	1.0-4
 numDeriv	2016.8-1.1
 ontologyIndex	2.12
 ooplah	0.2.0
-openssl	2.3.4
+openssl	2.3.5
 openxlsx	4.2.8.1
 operator.tools	1.6.3.1
 optparse	1.7.5
@@ -496,6 +498,7 @@ randomForest	4.7-1.2
 randomForestSRC	3.5.1
 ranger	0.18.0
 rappdirs	0.3.4
+rARPACK	0.11-0
 rbibutils	2.4.1
 rbiom	2.2.1
 rcmdcheck	1.4.0
