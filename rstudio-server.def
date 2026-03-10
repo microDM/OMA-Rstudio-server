@@ -100,7 +100,9 @@ From: rocker/r-ver:4.5
             'openxlsx',
             'GGally',
             'stringdist',
-            'sf'
+            'sf',
+            'MendelianRandomization',
+            'sfdep'
         ),
         ask = FALSE)"
     # clean caches to keep image small
