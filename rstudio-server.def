@@ -105,7 +105,8 @@ From: rocker/r-ver:4.5
             'sfdep',
             'gbm',
             'mboost',
-            'effsize'
+            'effsize',
+            'mixedCCA'
         ),
         ask = FALSE)"
     # clean caches to keep image small
