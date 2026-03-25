@@ -102,7 +102,10 @@ From: rocker/r-ver:4.5
             'stringdist',
             'sf',
             'MendelianRandomization',
-            'sfdep'
+            'sfdep',
+            'gbm',
+            'mboost',
+            'effsize'
         ),
         ask = FALSE)"
     # clean caches to keep image small
@@ -129,7 +132,8 @@ From: rocker/r-ver:4.5
             'davidsjoberg/ggstream',
             'BlakeRMills/MetBrewer',
             'krisrs1128/multimedia',
-            'mixOmicsTeam/mixOmics'
+            'mixOmicsTeam/mixOmics',
+            'himelmallick/IntegratedLearner'
         ),
         ask = FALSE)"
     # clean caches to keep image small
