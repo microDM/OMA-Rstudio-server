@@ -116,10 +116,10 @@ From: rocker/r-ver:4.5
     R -q -e "install.packages('https://cran.r-project.org/src/contrib/Archive/pulsar/pulsar_0.3.11.tar.gz', repos = NULL, type='source')"
 
     ############### GitHub packages ##################
+    R -q -e "pak::pkg_install('mlr-org/survdistr')"
     R -q -e 'pak::pak("mlr-org/mlr3proba")'
     R -q -e "
         pak::pkg_install(c(
-            'mlr-org/survdistr',
             'mlr-org/distr6',
             'mlr-org/mlr3extralearners@*release',
             'zdk123/SpiecEasi',
