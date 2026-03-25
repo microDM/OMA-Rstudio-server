@@ -37,8 +37,8 @@ From: rocker/r-ver:4.5
 
     ########### install OMA dependencies ##################
     R -q -e "install.packages('pak', repos='https://r-lib.github.io/p/pak/stable', quiet = T)"
-    R -q -e "pak::pkg_install('ggtree')"
     R -q -e "install.packages('BiocManager', quiet = T)"
+    R -q -e "BiocManager::install(c('treeio', 'ggtree'), ask = FALSE, update = FALSE)"
     R -q -e "
         url <- 'https://raw.githubusercontent.com/microbiome/OMA/devel/oma_packages/oma_packages.csv'
         df <- read.csv(url)
@@ -47,7 +47,6 @@ From: rocker/r-ver:4.5
             packages,
             ask=FALSE, update=FALSE
         )"
-
     ############### CRAN/BIOC packages ##################
     R -q -e "
         pak::pkg_install(c(
