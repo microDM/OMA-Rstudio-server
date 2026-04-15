@@ -74,7 +74,7 @@ classInt	0.4-11
 cli	3.6.5
 clipr	0.8.0
 clock	0.7.4
-clue	0.3-67
+clue	0.3-68
 cmprsk	2.2-12
 cobiclust	0.1.2
 coda	0.19-4.1
@@ -385,7 +385,7 @@ missForest	1.6.1
 mitml	0.4-5
 mixedCCA	1.6.3
 mixOmics	6.32.0
-mlbench	2.1-7
+mlbench	2.1-8
 MLmetrics	1.1.3
 mlogit	1.1-3
 mlr	2.19.3
@@ -503,7 +503,7 @@ proxy	0.4-29
 PRROC	1.4
 ps	1.9.1
 pscl	1.5.9
-psych	2.6.1
+psych	2.6.3
 Publish	2025.07.24
 pulsar	0.3.11
 purrr	1.2.1
@@ -521,7 +521,7 @@ R6	2.6.1
 ragg	1.5.2
 randomcoloR	1.1.0.1
 randomForest	4.7-1.2
-randomForestSRC	3.5.1
+randomForestSRC	3.6.0
 ranger	0.18.0
 rappdirs	0.3.4
 rARPACK	0.11-0
@@ -553,7 +553,7 @@ registry	0.5-1
 rematch	2.0.0
 rematch2	2.1.2
 remotes	2.5.0
-renv	1.1.8
+renv	1.2.0
 reprex	2.1.1
 reshape2	1.4.5
 reticulate	1.45.0
@@ -567,7 +567,7 @@ riskRegression	2026.03.11
 rJava	1.0-16
 rjson	0.2.23
 rlang	1.1.7
-rmarkdown	2.30
+rmarkdown	2.31
 rms	8.1-1
 rmutil	1.1.10
 rngtools	1.5.2
@@ -664,7 +664,7 @@ systemfonts	1.3.2
 T4transport	0.1.8
 tailor	0.1.0
 tensorA	0.36.2.1
-terra	1.9-1
+terra	1.9-11
 testthat	3.3.2
 textshaping	1.0.5
 TH.data	1.1-5
