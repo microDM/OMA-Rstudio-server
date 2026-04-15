@@ -106,7 +106,9 @@ From: rocker/r-ver:4.5
             'mboost',
             'effsize',
             'mixedCCA',
-            'Maaslin2'
+            'Maaslin2',
+            'ggthemes',
+            'ggpubr'
         ),
         ask = FALSE)"
     # clean caches to keep image small
