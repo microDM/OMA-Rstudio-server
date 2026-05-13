@@ -108,7 +108,9 @@ From: rocker/r-ver:4.5
             'mixedCCA',
             'Maaslin2',
             'ggthemes',
-            'ggpubr'
+            'ggpubr',
+            'table1',
+            'ggspatial'
         ),
         ask = FALSE)"
     # clean caches to keep image small
