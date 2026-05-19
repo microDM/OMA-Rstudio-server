@@ -132,7 +132,6 @@ From: rocker/r-ver:4.5
             'mlr-org/distr6',
             'mlr-org/mlr3extralearners',
             'GraceYoon/SPRING',
-            'stefpeschel/NetCoMi',
             'ijlyttle/projthis',
             'lasy/alto',
             'davidsjoberg/ggstream',
@@ -142,6 +141,12 @@ From: rocker/r-ver:4.5
             'himelmallick/IntegratedLearner'
         ),
         ask = FALSE)"
+    
+    R -q -e "
+    options(repos = c(CRAN = 'https://cloud.r-project.org'))
+    pak::pkg_install('stefpeschel/NetCoMi@v1.2.0', ask = FALSE)
+    "
+    
     # clean caches to keep image small
     R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
 
