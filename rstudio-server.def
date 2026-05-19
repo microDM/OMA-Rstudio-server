@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: rocker/r-ver:4.5
+From: rocker/r-ver:latest
 
 %labels
     Maintainer "Dattatray Mongad <dattatray.mongad@utu.fi>"
@@ -146,7 +146,7 @@ From: rocker/r-ver:4.5
     options(repos = c(CRAN = 'https://cloud.r-project.org'))
     pak::pkg_install('stefpeschel/NetCoMi@v1.2.0', ask = FALSE)
     "
-    
+
     # clean caches to keep image small
     R -q -e "if (requireNamespace('pak', quietly=TRUE)) pak::cache_delete()"
 
