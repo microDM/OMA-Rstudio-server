@@ -17,7 +17,10 @@ From: rocker/r-ver:4.5
     apt-get update && apt-get install -y --no-install-recommends \
         openjdk-17-jdk-headless libcurl4-openssl-dev \
         libpcre2-dev libdeflate-dev libzstd-dev liblzma-dev libbz2-dev zlib1g-dev libicu-dev libglpk-dev \
-        libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev libuv1 libuv1-dev
+        libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev libuv1 libuv1-dev nodejs npm libnode-dev
+    
+    # Ensure libnode.so.109 is available
+    ldconfig
 
     ################## install RStudio #################
     echo "==> Install RStudio Server (Posit)"
