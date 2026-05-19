@@ -17,7 +17,7 @@ From: rocker/r-ver:4.5
     apt-get update && apt-get install -y --no-install-recommends \
         openjdk-17-jdk-headless libcurl4-openssl-dev \
         libpcre2-dev libdeflate-dev libzstd-dev liblzma-dev libbz2-dev zlib1g-dev libicu-dev libglpk-dev \
-        libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev 
+        libgsl-dev libudunits2-dev libgdal-dev libgeos-dev libproj-dev libuv1 libuv1-dev
 
     ################## install RStudio #################
     echo "==> Install RStudio Server (Posit)"
@@ -110,7 +110,8 @@ From: rocker/r-ver:4.5
             'ggthemes',
             'ggpubr',
             'table1',
-            'ggspatial'
+            'ggspatial',
+            'SpiecEasi'
         ),
         ask = FALSE)"
     # clean caches to keep image small
@@ -127,7 +128,6 @@ From: rocker/r-ver:4.5
         pak::pkg_install(c(
             'mlr-org/distr6',
             'mlr-org/mlr3extralearners',
-            'zdk123/SpiecEasi',
             'GraceYoon/SPRING',
             'stefpeschel/NetCoMi',
             'ijlyttle/projthis',
