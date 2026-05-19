@@ -113,8 +113,7 @@ From: rocker/r-ver:4.5
             'ggthemes',
             'ggpubr',
             'table1',
-            'ggspatial',
-            'SpiecEasi'
+            'ggspatial'
         ),
         ask = FALSE)"
     # clean caches to keep image small
@@ -129,6 +128,7 @@ From: rocker/r-ver:4.5
     R -q -e 'pak::pak("mlr-org/mlr3proba")'
     R -q -e "
         pak::pkg_install(c(
+            'zdk123/SpiecEasi',
             'mlr-org/distr6',
             'mlr-org/mlr3extralearners',
             'GraceYoon/SPRING',
