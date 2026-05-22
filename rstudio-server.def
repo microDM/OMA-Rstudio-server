@@ -25,9 +25,10 @@ From: rocker/r-ver:latest
     ################## install RStudio #################
     echo "==> Install RStudio Server (Posit)"
     # Jammy build is the correct binary for Noble as well (per Posit).  Update version as needed.
-    RSTUDIO_VER=2025.05.1-513
+    RSTUDIO_VER=2026.04.0-526
+
     wget -q -O /tmp/rstudio-server.deb \
-      "https://download2.rstudio.org/server/jammy/amd64/rstudio-server-${RSTUDIO_VER}-amd64.deb"
+    "https://download2.rstudio.org/server/jammy/amd64/rstudio-server-${RSTUDIO_VER}-amd64.deb"
 
     # Use apt to install the .deb so dependencies are resolved without pulling in gdebi
     apt-get update
